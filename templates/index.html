@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Raspberry Pi Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.0/socket.io.js"
+        integrity="sha512-+sXUwEYakGznuXubXLO/7LWSAPcm+U3NxMJaSu3S5OcvruAAAzaC50Uh4TW9KWj0hA6vfPAjB7E1uuIXgn9vmQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        canvas {
+            margin-top: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-top: -1px;
+            padding: 8px 16px;
+        }
+
+        li:hover {
+            background-color: #f6f6f6;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Raspberry Pi Monitor</a>
+    </nav>
+
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">CPU</h5>
+                        <p class="card-text" id="cpuCard">0%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Memory</h5>
+                        <p class="card-text" id="memoryCard">0%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Temperature</h5>
+                        <p class="card-text" id="temperatureCard">0°C</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-4">
+                <canvas id="cpuChart" width="400" height="200"></canvas>
+            </div>
+            <div class="col-md-4">
+                <canvas id="memoryChart" width="400" height="200"></canvas>
+            </div>
+            <div class="col-md-4">
+                <canvas id="temperatureChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="container mt-5">
+        <button class="btn btn-primary" id="loadHistoricData">Load Historic Data</button>
+        <canvas id="historicChart" width="800" height="400" style="margin-top: 20px;"></canvas>
+    </div>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">
+                Spike Events
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for timestamp, event in events %}
+                <li class="list-group-item"><strong>{{ timestamp }}</strong>: {{ event }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            console.log(location.protocol + '//' + document.domain + ':' + location.port + '/events')
+            const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/events', {
+                forceNew: true,
+                reconnectionDelay: 1000,
+                reconnectionAttempts: 10,
+                transports: ['websocket']
+
+            });
+
+            socket.on('connect', function () {
+                console.log('Socket.io connected!');
+            });
+
+            socket.on('connect_error', (error) => {
+                console.log('Connection Error: ', error);
+                console.log('Error type: ', error.type);
+                console.log('Error message: ', error.message);
+                console.log('Error stack: ', error.stack);
+            });
+
+            socket.on('reconnect_error', (error) => {
+                console.log('Reconnection Error: ', error);
+            });
+
+            socket.on('reconnect_failed', () => {
+                console.log('Reconnection Failed');
+            });
+
+            // TODO make this merge with the db data  maybe with a dict I can avoid duplicates
+            socket.on('new_event', function (data) {
+                console.log('Received data:', data);
+
+                const eventList = document.querySelector("ul");
+                const listItem = document.createElement("li");
+                listItem.innerHTML = `<strong>${data[0]}</strong>: ${data[1]}`;
+                eventList.insertBefore(listItem, eventList.firstChild); // Add to the top
+
+                // Optional: Limit the number of displayed events to 10
+                while (eventList.children.length > 10) {
+                    eventList.removeChild(eventList.lastChild);
+                }
+            });
+
+            var cpuData = [];
+            var memoryData = [];
+            var temperatureData = [];
+
+            function refreshMetrics() {
+                fetch('/metrics')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        cpuData.push(data.cpu);
+                        memoryData.push(data.memory);
+                        temperatureData.push(data.temperature);
+
+                        if (cpuData.length > 60) cpuData.shift();
+                        if (memoryData.length > 60) memoryData.shift();
+                        if (temperatureData.length > 60) temperatureData.shift();
+
+                        cpuChart.update();
+                        document.getElementById("cpuCard").innerText = data.cpu + "%";
+                        memoryChart.update();
+                        document.getElementById("memoryCard").innerText = data.memory + "%";
+                        temperatureChart.update();
+                        document.getElementById("temperatureCard").innerText = data.temperature + "°C";
+
+                    })
+                    .catch(error => {
+                        console.log('Fetch Error:', error);
+                    });
+            }
+
+            // CPU Chart
+            var ctxCpu = document.getElementById('cpuChart').getContext('2d');
+            var cpuChart = new Chart(ctxCpu, {
+                type: 'line',
+                data: {
+                    labels: Array(60).fill(""),
+                    datasets: [{
+                        label: 'CPU Usage (%)',
+                        data: cpuData,
+                        borderColor: 'rgb(255, 99, 132)',
+                        fill: false
+                    }]
+                }
+            });
+
+            // Memory Chart
+            var ctxMemory = document.getElementById('memoryChart').getContext('2d');
+            var memoryChart = new Chart(ctxMemory, {
+                type: 'line',
+                data: {
+                    labels: Array(60).fill(""),
+                    datasets: [{
+                        label: 'Memory Usage (%)',
+                        data: memoryData,
+                        borderColor: 'rgb(54, 162, 235)',
+                        fill: false
+                    }]
+                }
+            });
+
+            // Temperature Chart
+            var ctxTemperature = document.getElementById('temperatureChart').getContext('2d');
+            var temperatureChart = new Chart(ctxTemperature, {
+                type: 'line',
+                data: {
+                    labels: Array(60).fill(""),
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: temperatureData,
+                        borderColor: 'rgb(255, 159, 64)',
+                        fill: false
+                    }]
+                }
+            });
+
+            document.getElementById("loadHistoricData").addEventListener('click', () => {
+                fetch('/historic-stats')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Extracting data from the returned JSON
+                        const timestamps = data.map(d => d.timestamp);
+                        const cpuPercentages = data.map(d => d.cpu_percentage);
+                        const memoryPercentages = data.map(d => d.memory_percentage);
+                        const storagePercentages = data.map(d => d.storage_percentage);
+
+                        // Displaying data in the chart
+                        const ctxHistoric = document.getElementById('historicChart').getContext('2d');
+                        new Chart(ctxHistoric, {
+                            type: 'line',
+                            data: {
+                                labels: timestamps,
+                                datasets: [{
+                                    label: 'CPU Usage (%)',
+                                    data: cpuPercentages,
+                                    borderColor: 'rgb(255, 99, 132)',
+                                    fill: false
+                                },
+                                {
+                                    label: 'Memory Usage (%)',
+                                    data: memoryPercentages,
+                                    borderColor: 'rgb(54, 162, 235)',
+                                    fill: false
+                                },
+                                {
+                                    label: 'Storage Usage (%)',
+                                    data: storagePercentages,
+                                    borderColor: 'rgb(75, 192, 192)',
+                                    fill: false
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    x: {
+                                        type: 'time',
+                                        time: {
+                                            unit: 'day'
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error fetching historic data:", error);
+                    });
+            });
+
+
+            // Refresh metrics every 1 seconds
+            setInterval(refreshMetrics, 5000);
+
+            // Initial metrics fetch
+            refreshMetrics();
+        });
+    </script>
+</body>
+
+</html>
