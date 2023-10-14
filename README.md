@@ -1,5 +1,7 @@
 Bugs:
     CPU Monitoring might be having errors... as 80% seems unlikely.
+    Every new tab that is oppened, websocket sends the spikes event again...
+    Every time the websocket reconnects, websocket sends the spike event again...
 
 Backlog:
     Requirements.txt
