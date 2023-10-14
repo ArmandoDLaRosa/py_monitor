@@ -137,7 +137,7 @@
             const eventList = document.querySelector("ul");
 
             socket.on('initial_spikes', function (data) {
-                console.log('Received initial spikes:');
+                console.log('Received initial spikes');
                 const jsonData = JSON.parse(data);
 
                 for (let spike of jsonData) {
@@ -148,7 +148,7 @@
             });
 
             socket.on('new_event', function (data) {
-                console.log('Received new event:', data);
+                console.log('Received new event');
 
                 const listItem = document.createElement("li");
                 listItem.innerHTML = `<strong>${data[0]}</strong>: ${data[1]}`;
