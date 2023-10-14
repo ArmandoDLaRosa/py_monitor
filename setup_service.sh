@@ -32,5 +32,3 @@ sudo systemctl start ${APP_NAME}.service
 
 echo "Service '${APP_NAME}' has been set up and started."
 
-#sudo journalctl -u {APP_NAME}.service
-

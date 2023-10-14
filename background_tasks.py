@@ -47,6 +47,8 @@ def background_monitoring(app):
                 socketio.emit('new_event', [time_stamp, event], namespace='/events')
                 send_email_notification("High_CPU_Temperature", f"{time_stamp}-{event}")
 
+
+            # Maybe I should store temp too
             stat = SystemStat(
                 timestamp=time_stamp,
                 cpu_percentage= cpu_percentage,
