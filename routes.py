@@ -51,21 +51,21 @@ def historic_stats():
     # Query the database to calculate the average metric for each hour
     hourly_stats = []
     for start_time, end_time in hours:
-        avg_metric = SystemStat.query.with_entities(
-            func.avg(SystemStat.cpu_percentage).label('avg_cpu_percentage'),
-            func.avg(SystemStat.memory_percentage).label('avg_memory_percentage'),
-            func.avg(SystemStat.storage_percentage).label('avg_storage_percentage')
+        max_metric = SystemStat.query.with_entities(
+            func.max(SystemStat.cpu_percentage).label('max_cpu_percentage'),
+            func.max(SystemStat.memory_percentage).label('max_memory_percentage'),
+            func.max(SystemStat.storage_percentage).label('max_storage_percentage')
         ).filter(
             SystemStat.timestamp >= start_time,
             SystemStat.timestamp < end_time
         ).first()
         
-        if avg_metric:
+        if max_metric:
             hourly_stats.append({
                 "timestamp": start_time.strftime("%Y-%m-%d %H:%M:%S"),
-                "cpu_percentage": avg_metric.avg_cpu_percentage,
-                "memory_percentage": avg_metric.avg_memory_percentage,
-                "storage_percentage": avg_metric.avg_storage_percentage
+                "cpu_percentage": max_metric.max_cpu_percentage,
+                "memory_percentage": max_metric.max_memory_percentage,
+                "storage_percentage": max_metric.max_storage_percentage
             })
 
     return jsonify(hourly_stats)
