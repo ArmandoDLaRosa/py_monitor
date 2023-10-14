@@ -3,6 +3,7 @@ from extensions import db, socketio
 from routes import register_blueprints
 from background_tasks import start_background_tasks
 from flask_cors import CORS
+from models import get_last_5_spikes
 
 def create_app():
     app = Flask(__name__)
@@ -24,7 +25,9 @@ def register_extensions(app):
 
 @socketio.on('connect', namespace='/events')
 def handle_connect():
-    print('Client connected')
+    print("Connected")
+    last_5_spikes = get_last_5_spikes()    
+    socketio.emit('initial_spikes', last_5_spikes, namespace='/events')
 
 @socketio.on_error_default
 def default_error_handler(e):
@@ -35,7 +38,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         start_background_tasks(app)
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=8080) #5000 #8080
 
 
 
