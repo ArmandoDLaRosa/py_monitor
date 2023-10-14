@@ -133,20 +133,32 @@
                 console.log('Reconnection Failed');
             });
 
-            // TODO make this merge with the db data  maybe with a dict I can avoid duplicates
-            socket.on('new_event', function (data) {
-                console.log('Received data:', data);
 
-                const eventList = document.querySelector("ul");
+            const eventList = document.querySelector("ul");
+
+            socket.on('initial_spikes', function (data) {
+                console.log('Received initial spikes:');
+                const jsonData = JSON.parse(data);
+
+                for (let spike of jsonData) {
+                    const listItem = document.createElement("li");
+                    listItem.innerHTML = `<strong>${spike.timestamp}</strong>: ${spike.event}`;
+                    eventList.insertBefore(listItem, eventList.firstChild);
+                }
+            });
+
+            socket.on('new_event', function (data) {
+                console.log('Received new event:', data);
+
                 const listItem = document.createElement("li");
                 listItem.innerHTML = `<strong>${data[0]}</strong>: ${data[1]}`;
-                eventList.insertBefore(listItem, eventList.firstChild); // Add to the top
+                eventList.insertBefore(listItem, eventList.firstChild);
 
-                // Optional: Limit the number of displayed events to 10
                 while (eventList.children.length > 10) {
                     eventList.removeChild(eventList.lastChild);
                 }
             });
+
 
             var cpuData = [];
             var memoryData = [];
@@ -281,7 +293,7 @@
 
 
             // Refresh metrics every 1 seconds
-            setInterval(refreshMetrics, 5000);
+            setInterval(refreshMetrics, 10000);
 
             // Initial metrics fetch
             refreshMetrics();
