@@ -4,15 +4,16 @@ import json
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.String(50), nullable=False)  # DateTime
+    timestamp = db.Column(db.String(50), nullable=False,  index=True)  
     description = db.Column(db.String(500), nullable=False)
     
 class SystemStat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.String(50), nullable=False)
+    timestamp = db.Column(db.String(50), nullable=False,  index=True)  
     cpu_percentage = db.Column(db.Float, nullable=False)
     memory_percentage = db.Column(db.Float, nullable=False)
     storage_percentage = db.Column(db.Float, nullable=False)
+    temperature = db.Column(db.Float, nullable=False)
     
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):

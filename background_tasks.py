@@ -53,7 +53,8 @@ def background_monitoring(app):
                 timestamp=time_stamp,
                 cpu_percentage= cpu_percentage,
                 memory_percentage= memory_info,
-                storage_percentage= disk
+                storage_percentage= disk,
+                temperature= temp
             )
             db.session.add(stat)
             db.session.commit()

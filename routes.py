@@ -42,33 +42,33 @@ def metrics():
     
 @main_bp.route('/historic-stats')
 def historic_stats():
-    # Calculate the datetime for 7 days ago from now
-    seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
-    
-    # Calculate the start and end of each hour for the last 7 days
-    hours = [(seven_days_ago + datetime.timedelta(hours=i), seven_days_ago + datetime.timedelta(hours=i+1)) for i in range(24*7)]
-    
-    # Query the database to calculate the average metric for each hour
-    hourly_stats = []
-    for start_time, end_time in hours:
-        max_metric = SystemStat.query.with_entities(
-            func.max(SystemStat.cpu_percentage).label('max_cpu_percentage'),
-            func.max(SystemStat.memory_percentage).label('max_memory_percentage'),
-            func.max(SystemStat.storage_percentage).label('max_storage_percentage')
-        ).filter(
-            SystemStat.timestamp >= start_time,
-            SystemStat.timestamp < end_time
-        ).first()
-        
-        if max_metric:
-            hourly_stats.append({
-                "timestamp": start_time.strftime("%Y-%m-%d %H:%M:%S"),
-                "cpu_percentage": max_metric.max_cpu_percentage,
-                "memory_percentage": max_metric.max_memory_percentage,
-                "storage_percentage": max_metric.max_storage_percentage
-            })
+    today =  datetime.datetime.now()
+    seven_days_ago = today - datetime.timedelta(days=7)
+
+    hourly_stats_query = SystemStat.query.with_entities(
+        func.date_format(SystemStat.timestamp, "%Y-%m-%d %H:00:00").label('hour'),
+        func.max(SystemStat.cpu_percentage).label('max_cpu_percentage'),
+        func.max(SystemStat.memory_percentage).label('max_memory_percentage'),
+        func.max(SystemStat.storage_percentage).label('max_storage_percentage'),
+        func.max(SystemStat.temperature).label('max_temperature')        
+    ).filter(
+        SystemStat.timestamp >= seven_days_ago,
+        SystemStat.timestamp <= today
+    ).group_by(
+        func.date_format(SystemStat.timestamp, "%Y-%m-%d %H:00:00")
+    ).order_by(
+        func.date_format(SystemStat.timestamp, "%Y-%m-%d %H:00:00")
+    ).all()
+
+    hourly_stats = [{
+        "timestamp": record.hour,
+        "cpu_percentage": record.max_cpu_percentage,
+        "memory_percentage": record.max_memory_percentage,
+        "storage_percentage": record.max_storage_percentage,
+        "temperature": record.max_temperature
+    } for record in hourly_stats_query]
 
     return jsonify(hourly_stats)
-    
+
 def register_blueprints(app):
     app.register_blueprint(main_bp)

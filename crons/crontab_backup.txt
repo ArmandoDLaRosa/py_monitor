@@ -1,0 +1,2 @@
+# Checking IP
+59 23 * * * cd /home/armando/Repos/py_monitor && /home/armando/Repos/myenv/bin/python3.11 services.py

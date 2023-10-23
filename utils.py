@@ -1,5 +1,14 @@
 import psutil
+import requests
 
+def get_public_ip():
+    try:
+        response = requests.get('https://httpbin.org/ip')
+        return response.json()['origin']
+    except Exception as e:
+        print(f"Error retrieving public IP: {e}")
+        return None
+    
 def get_top_processes(metric='cpu', top_n=5):
     processes = []
 

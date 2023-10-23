@@ -248,6 +248,7 @@
                         const cpuPercentages = data.map(d => d.cpu_percentage);
                         const memoryPercentages = data.map(d => d.memory_percentage);
                         const storagePercentages = data.map(d => d.storage_percentage);
+                        const temperatureVar = data.map(d => d.temperature);
 
                         // Displaying data in the chart
                         const ctxHistoric = document.getElementById('historicChart').getContext('2d');
@@ -272,7 +273,14 @@
                                     data: storagePercentages,
                                     borderColor: 'rgb(75, 192, 192)',
                                     fill: false
-                                }]
+                                },
+                                {
+                                    label: 'Temperature (°C)',
+                                    data: temperatureVar,
+                                    borderColor: 'rgb(255, 159, 64)',
+                                    fill: false                                    
+                                }
+                            ]
                             },
                             options: {
                                 scales: {

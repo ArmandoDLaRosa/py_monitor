@@ -2,12 +2,21 @@ Bugs:
     CPU Monitoring might be having errors... as 80% seems unlikely.
     Every new tab that is oppened, websocket sends the spikes event again... -> session
     Every time the websocket reconnects, websocket sends the spike event again... -> refresh the list with the latest 5
+    I'm not storing temperature
 
 Backlog:
     Requirements.txt
     Implement Flask Migration 
     Implement a Real DB insteaad of sqlitedb
-    
+    Implement unit testing
+    Implement functional programming 
+    Implement GRPC
+    Implement asynchronous vs parallel programming 
+    Implement thread locking 
+    Implement lambda vs kappa architecture OR microservices
+    Implement push vs pull architectures 
+    Implement a rollback
+
 Documentation:
 
     Env Activiting
@@ -29,4 +38,8 @@ Documentation:
 
     Run the scripts
         sudo ./setup_service.sh
+
+    Edit the database
+        flask db migrate -m "change being done"
+        flask db upgrade/downgrade
 
