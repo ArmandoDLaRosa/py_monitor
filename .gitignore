@@ -1,3 +1,33 @@
 instance/rasp4_armando.db
 settings.json
-__pycache__
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+myenv/
+
+# IDE (e.g. PyCharm)
+.idea/
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# Backup files
+*~
+
+# Cache and logs
+.cache/
+log/
+logs/
+
+# Environment variables
+.env
+
+# Dependency directories
+node_modules/
