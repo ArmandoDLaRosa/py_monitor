@@ -39,7 +39,7 @@ def background_monitoring(app):
                 socketio.emit('new_event', [time_stamp, event], namespace='/events')
                 send_email_notification("Disk_overload", f"{time_stamp}-{event}")
 
-            if temp > 45:  
+            if temp > 50:  
                 event = f"High CPU temperature detected: {temp}°C."
                 new_event = Event(timestamp=time_stamp, description=event)
                 db.session.add(new_event)

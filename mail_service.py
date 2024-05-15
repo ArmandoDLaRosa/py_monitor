@@ -43,3 +43,17 @@ def send_email_notification(subject, message):
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
+
+def main():
+    test_subject = "Test Email"
+    test_message = "This is a test email message."
+
+    result = send_email_notification(test_subject, test_message)
+
+    if result:
+        print("Email sent successfully!")
+    else:
+        print("Failed to send email.")
+
+if __name__ == "__main__":
+    main()

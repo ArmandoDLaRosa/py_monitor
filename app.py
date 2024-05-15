@@ -50,7 +50,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  
         start_background_tasks(app)
-    socketio.run(app, host='0.0.0.0', port=8080) #5000 #8080
+    socketio.run(app, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True ) #5000 #8080
 
 
 
