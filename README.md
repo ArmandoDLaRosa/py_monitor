@@ -43,3 +43,5 @@ Documentation:
         flask db migrate -m "change being done"
         flask db upgrade/downgrade
 
+    Backup service
+    sudo chmod +x backup.sh

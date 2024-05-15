@@ -61,6 +61,11 @@ def background_monitoring(app):
             
             time.sleep(1)
 
+            usb_disk_space = psutil.disk_usage('/media/armando/A8A6-E34B').percent  # Monitoring USB mount point
+            if usb_disk_space > 40:
+                send_email_notification("Backup_overload", f"{time_stamp}-{event}")
+
+
 def start_background_tasks(app):
     thread = threading.Thread(target=background_monitoring, args=(app,))
     thread.start()
