@@ -107,3 +107,7 @@ echo "Cron jobs have been updated to match '$CRON_FILE'."
 ${VENV_DIR}/bin/python -m flask db init
 
 echo "Migrations folder existence was verified."
+
+
+sudo timedatectl set-timezone America/Mexico_City
+echo "set timezone"
