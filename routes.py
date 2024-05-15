@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, request
 import psutil
 import os
 from models import SystemStat
 import datetime
 from sqlalchemy import func 
+from mail_service import send_email_notification
 
 main_bp = Blueprint('main', __name__)
 
@@ -70,5 +71,22 @@ def historic_stats():
 
     return jsonify(hourly_stats)
 
+@main_bp.route('/send-email', methods=['POST'])
+def send_email():
+    data = request.get_json()
+    subject = data.get('subject')
+    message = data.get('message')
+    message_type = data.get('message_type', 'plain')
+
+    if not subject or not message:
+        return jsonify({'error': 'Subject and message are required'}), 400
+
+    result = send_email_notification(subject, message, message_type)
+
+    if result:
+        return jsonify({'message': 'Email sent successfully!'}), 200
+    else:
+        return jsonify({'error': 'Failed to send email'}), 500
+    
 def register_blueprints(app):
     app.register_blueprint(main_bp)

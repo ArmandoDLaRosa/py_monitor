@@ -9,35 +9,27 @@ def load_settings():
     return settings
 
 
-def send_email_notification(subject, message):
+def send_email_notification(subject, message, message_type='plain'):
     settings = load_settings()
-    # Email configuration
     sender_email = settings["mail"]["mail"]
     recipient_email = 'armando.de@larosapost.com'
     app_password = settings["mail"]["app_password"]
     smtp_server = 'smtp.gmail.com'
     smtp_port = 587
 
-    # Create a message
     msg = MIMEMultipart()
     msg['From'] = sender_email
     msg['To'] = recipient_email
     msg['Subject'] = subject
 
-    # Attach the message body
-    body = MIMEText(message, 'plain')
+    body = MIMEText(message, message_type)
     msg.attach(body)
 
     try:
-        # Connect to the SMTP server
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
         server.login(sender_email, app_password)
-
-        # Send the email
         server.sendmail(sender_email, recipient_email, msg.as_string())
-
-        # Close the SMTP connection
         server.quit()
         return True
     except Exception as e:
